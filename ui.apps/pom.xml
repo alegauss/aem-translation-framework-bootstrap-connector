@@ -14,7 +14,8 @@
  |  See the License for the specific language governing permissions and
  |  limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <!-- ====================================================================== -->
@@ -26,7 +27,6 @@
         <version>2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-
     <!-- ====================================================================== -->
     <!-- P R O J E C T  D E S C R I P T I O N                                   -->
     <!-- ====================================================================== -->
@@ -40,81 +40,67 @@
     <!-- ====================================================================== -->
     <build>
         <sourceDirectory>src/main/content/jcr_root</sourceDirectory>
-        <resources>
-          <resource>
-             <!-- we want to keep some of the META-INF files and not configure everything
-                in the plugin. -->
-            <directory>${basedir}/src/main/content/META-INF</directory>
-            <targetPath>../vault-work/META-INF</targetPath>
-          </resource>            
-            <!-- define the resources that will go into the package -->
-            <resource>
-                <directory>${basedir}/src/main/content/jcr_root</directory>
-                <excludes>
-                    <!-- exclude .vlt control files in the package -->
-                    <exclude>**/.vlt</exclude>
-                    <exclude>**/.vltignore</exclude>
-                    <exclude>**/.gitignore</exclude>
-                    <exclude>**/*.iml</exclude>
-                    <exclude>**/.classpath</exclude>
-                    <exclude>**/.project</exclude>
-                    <exclude>**/.settings</exclude>
-                    <exclude>**/.DS_Store</exclude>
-                    <exclude>**/target/**</exclude>
-                    <exclude>**/pom.xml</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
-            <!--
-                we want to keep some of the META-INF files and not configure
-                everything in the plugin (mainly the filters).
-
-                copy the resource explicitly instead of attaching it to the default resources
-            -->
+            <!-- ====================================================================== -->
+            <!-- V A U L T   P A C K A G E   P L U G I N S                              -->
+            <!-- ====================================================================== -->
             <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <!-- ensure that the empty directories are copied -->
+                <groupId>org.apache.jackrabbit</groupId>
+                <artifactId>filevault-package-maven-plugin</artifactId>
                 <configuration>
-                    <includeEmptyDirs>true</includeEmptyDirs>
+                    <properties>
+                        <cloudManagerTarget>none</cloudManagerTarget>
+                    </properties>
+                    <group>com.adobe.granite.translation.connector</group>
+                    <name>bootstrap-connector.ui.apps</name>
+                    <packageType>application</packageType>
+                    <repositoryStructurePackages>
+                        <repositoryStructurePackage>
+                            <groupId>com.adobe.granite.translation.connector</groupId>
+                            <artifactId>bootstrap-connector.ui.apps.structure</artifactId>
+                        </repositoryStructurePackage>
+                    </repositoryStructurePackages>
+                    <dependencies>
+                    </dependencies>
                 </configuration>
             </plugin>
-
-            <!-- ====================================================================== -->
-            <!-- V A U L T   P A C K A G E   P L U G I N                                -->
-            <!-- ====================================================================== -->
             <plugin>
                 <groupId>com.day.jcr.vault</groupId>
                 <artifactId>content-package-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <filterSource>src/main/content/META-INF/vault/filter.xml</filterSource>
                     <verbose>true</verbose>
                     <failOnError>true</failOnError>
-                    <group>com.adobe.granite.translation.connector</group>
-                    <embeddeds>
-                        <embedded>
-                            <groupId>com.adobe.granite.translation.connector</groupId>
-                            <artifactId>bootstrap-connector.core</artifactId>
-                            <target>/apps/bootstrap-connector/install</target>
-                        </embedded>
-                        <embedded>
-                            <groupId>com.adobe.granite.translation</groupId>
-                            <artifactId>bootstrap-tms.core</artifactId>
-                            <target>/apps/bootstrap-connector/install</target>
-                        </embedded>
-                    </embeddeds>
-                    <dependencies>
-                        <dependency>
-                            <group>com.adobe.granite.translation.connector</group>
-                            <name>bootstrap-connector.ui.content</name>
-                            <version>[${project.version},)</version>
-                        </dependency>
-                    </dependencies>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.sling</groupId>
+                <artifactId>htl-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate-htl-scripts</id>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <generateJavaClasses>true</generateJavaClasses>
+                            <generatedJavaClassesPrefix>org.apache.sling.scripting.sightly</generatedJavaClassesPrefix>
+                            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                            <allowedExpressionOptions>
+                                <allowedExpressionOption>cssClassName</allowedExpressionOption>
+                                <allowedExpressionOption>decoration</allowedExpressionOption>
+                                <allowedExpressionOption>decorationTagName</allowedExpressionOption>
+                                <allowedExpressionOption>wcmmode</allowedExpressionOption>
+                            </allowedExpressionOptions>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
 
     <!-- ====================================================================== -->
     <!-- D E P E N D E N C I E S                                                -->
@@ -125,30 +111,23 @@
             <artifactId>bootstrap-connector.core</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.adobe.granite.translation.connector</groupId>
+            <artifactId>bootstrap-connector.ui.apps.structure</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+        </dependency>
         <dependency>
             <groupId>com.adobe.aem</groupId>
             <artifactId>aem-sdk-api</artifactId>
         </dependency>
 
+        <!-- HTL dependencies needed for the HTL Maven Plugin source code generation -->
         <dependency>
-            <groupId>javax.jcr</groupId>
-            <artifactId>jcr</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.day.cq.wcm</groupId>
-            <artifactId>cq-wcm-taglib</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.adobe.granite.translation</groupId>
-            <artifactId>bootstrap-tms.core</artifactId>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.scripting.sightly.runtime</artifactId>
+            <version>1.2.4-1.4.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
